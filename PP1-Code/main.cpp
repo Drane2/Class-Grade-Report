@@ -111,6 +111,9 @@ double average(vector<double> data)
 
 static void printData(struct info *student, vector<double> &studentAvg)
 {
+    ofstream classreport("ClassGradeReport.txt");
+    classreport << "First   Last    T1     T2     T3     T4    Final   Avg    Grade" << newl << newl;
+    
     for(int i=0;i<allStudents;i++)
     {
         string first = student[i].firstName;
@@ -123,7 +126,7 @@ static void printData(struct info *student, vector<double> &studentAvg)
         double avg = (t1+t2+t3+t4+final)/5;
         
         // Formats the data
-        cout << setw(8) << left << first
+        classreport << setw(8) << left << first
         << setw(8) << last << setw(7) << t1
         << setw(7) << t2   << setw(7) << t3
         << setw(7) << t4   << setw(7) << final
@@ -136,8 +139,11 @@ static void printData(struct info *student, vector<double> &studentAvg)
 
 int main()
 {
+    // Open the output file
+    ofstream classreport("ClassGradeReport.txt", std::ios_base::app | std::ios_base::out);
+    
     // Create an array where each index represents a student
-    // and stores info from both .txt files
+    // and store info from both .txt files
     struct info student[allStudents];
     storeInfo(inputFile, inputFile2, student);
     
@@ -160,37 +166,36 @@ int main()
     }
     
     // Print the class report
-    cout << "First   Last    T1     T2     T3     T4    Final   Avg    Grade" << newl << newl;
     printData(student, studentAvg);
-    cout << newl;
+    classreport << newl;
     
     // Print the average for each test
-    cout << setprecision(4);
-    cout << newl << setw(16) << left << "Test Averages:"
+    classreport << setprecision(4);
+    classreport << newl << setw(16) << left << "Test Averages:"
     << setw(7) << average(t1) << setw(7)  << average(t2)
     << setw(7) << average(t3) << setw(7)  << average(t4)
     << setw(7) << average(final);
     
     // Print the highest grade of each test
-    cout << newl << setw(16) << left << "Highest Grade:"
+    classreport << newl << setw(16) << left << "Highest Grade:"
     << setw(7) << max(t1) << setw(7)  << max(t2)
     << setw(7) << max(t3) << setw(7)  << max(t4)
     << setw(7) << max(final);
     
     // Print average of every test
     double totalAvg = ((average(t1)/t1.size()) + (average(t2)/t2.size()) + (average(t3)/t3.size()) + (average(t4)/t4.size()) + (average(final)/final.size()))/(5*allStudents);
-    cout << newl << "Total Average:  " << totalAvg << newl;
+    classreport << newl << "Total Average:  " << totalAvg << newl;
     
     // Print highest class grade
-    cout << newl << setw(16) << left << "Highest Avg: " << setw(6) << left << max(studentAvg) << " ";
+    classreport << newl << setw(16) << left << "Highest Avg: " << setw(6) << left << max(studentAvg) << " ";
     for (int i=0;i<allStudents;i++)
     {
         if(studentAvg[i] == max(studentAvg))
         {
-            cout << student[i].firstName << " " << student[i].lastName << newl;
+            classreport << student[i].firstName << " " << student[i].lastName << newl;
         }
     }
     
-    cout << newl;
+    classreport.close();
     return 0;
 }
