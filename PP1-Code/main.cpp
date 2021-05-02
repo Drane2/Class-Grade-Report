@@ -12,17 +12,36 @@
 
 using namespace std;
 
-// Global variables
-int class1_size = 25;
-int class2_size = 20;
-int allStudents = class1_size + class2_size;
+int fileLength(string file)
+{
+    ifstream myfile(file);
+    int numLines = 0;
+    string line;
 
-string newl = "\n";
+    while(getline(myfile, line))
+    {
+        numLines++;
+    }
+
+    return numLines;
+}
 
 // Declare file names
 string inputFile = "CIT1325.txt";
 string inputFile2 = "CIT1350.txt";
 string outputFile = "ClassGradeReport.txt";
+
+// Open files
+ifstream myfile(inputFile);
+ifstream myfile2(inputFile2);
+
+// Global variables
+int class1_size = fileLength(inputFile)-1;
+int class2_size = fileLength(inputFile2);
+int allStudents = class1_size + class2_size;
+int width = 10;
+
+string newl = "\n";
 
 // Declare a struct with variables
 struct info
@@ -58,31 +77,25 @@ char letterGrade(double avg)
 // Read text from file and store into an array
 void storeInfo(string file, string file2, struct info arr[])
 {
-    ifstream myfile(file);
-    ifstream myfile2(file2);
-    
-    if((myfile.is_open())&&(myfile2.is_open()))
+    for(int i=0;i<class1_size;i++)
     {
-        for(int i=0;i<class1_size;i++)
-        {
-            myfile >> arr[i].firstName;
-            myfile >> arr[i].lastName;
-            myfile >> arr[i].t1;
-            myfile >> arr[i].t2;
-            myfile >> arr[i].t3;
-            myfile >> arr[i].t4;
-            myfile >> arr[i].final;
-        }
-        for(int i=class1_size;i<allStudents;i++)
-        {
-            myfile2 >> arr[i].firstName;
-            myfile2 >> arr[i].lastName;
-            myfile2 >> arr[i].t1;
-            myfile2 >> arr[i].t2;
-            myfile2 >> arr[i].t3;
-            myfile2 >> arr[i].t4;
-            myfile2 >> arr[i].final;
-        }
+        myfile >> arr[i].firstName;
+        myfile >> arr[i].lastName;
+        myfile >> arr[i].t1;
+        myfile >> arr[i].t2;
+        myfile >> arr[i].t3;
+        myfile >> arr[i].t4;
+        myfile >> arr[i].final;
+    }
+    for(int i=class1_size;i<allStudents;i++)
+    {
+        myfile2 >> arr[i].firstName;
+        myfile2 >> arr[i].lastName;
+        myfile2 >> arr[i].t1;
+        myfile2 >> arr[i].t2;
+        myfile2 >> arr[i].t3;
+        myfile2 >> arr[i].t4;
+        myfile2 >> arr[i].final;
     }
 }
 
@@ -109,10 +122,22 @@ double average(vector<double> data)
     return temp/data.size();
 }
 
+static void extracted(std::ofstream &classreport) {
+    vector<string> labels = {"First", "Last", "Test 1",
+        "Test2", "Test 3", "Test 4",
+        "Final", "Average", "Grade"};
+    
+    for(int i=0;i<labels.size();i++)
+    {
+        classreport << setw(width) << left << labels[i];
+    }
+}
+
 static void printData(struct info *student, vector<double> &studentAvg)
 {
     ofstream classreport("ClassGradeReport.txt");
-    classreport << "First   Last    T1     T2     T3     T4    Final   Avg    Grade" << newl << newl;
+    extracted(classreport);
+    classreport << "\n\n";
     
     for(int i=0;i<allStudents;i++)
     {
@@ -125,76 +150,140 @@ static void printData(struct info *student, vector<double> &studentAvg)
         double final = student[i].final;
         double avg = (t1+t2+t3+t4+final)/5;
         
-        // Formats the data
-        classreport << setw(8) << left << first
-        << setw(8) << last << setw(7) << t1
-        << setw(7) << t2   << setw(7) << t3
-        << setw(7) << t4   << setw(7) << final
-        << setw(9) << avg  << setw(7) << letterGrade(avg) << newl;
+        // Formats and prints the data
+        classreport << setw(width) << left << first
+        << setw(width) << last << setw(width) << t1
+        << setw(width) << t2   << setw(width) << t3
+        << setw(width) << t4   << setw(width) << final
+        << setw(width) << avg  << setw(width) << letterGrade(avg) << newl;
         
         // Stores the student average into a vector
         studentAvg[i] = avg;
     }
 }
 
-int main()
+// To access a specific students info
+void findStudent(struct info *student, vector<double> avg)
 {
-    // Open the output file
-    ofstream classreport("ClassGradeReport.txt", std::ios_base::app | std::ios_base::out);
+    string first, last;
     
-    // Create an array where each index represents a student
-    // and store info from both .txt files
-    struct info student[allStudents];
-    storeInfo(inputFile, inputFile2, student);
-    
-    // Create vector for each test
-    // and store the grades
-    vector<double> t1(allStudents);
-    vector<double> t2(allStudents);
-    vector<double> t3(allStudents);
-    vector<double> t4(allStudents);
-    vector<double> final(allStudents);
-    vector<double> studentAvg(allStudents);
+    cout << newl << "+ First name (case-sensitive): ";
+    cin >> first;
+    cout << newl << "+ Last name (case-sensitive): ";
+    cin >> last;
     
     for(int i=0;i<allStudents;i++)
     {
-        t1[i] = student[i].t1;
-        t2[i] = student[i].t2;
-        t3[i] = student[i].t3;
-        t4[i] = student[i].t4;
-        final[i] = student[i].final;
-    }
-    
-    // Print the class report
-    printData(student, studentAvg);
-    classreport << newl;
-    
-    // Print the average for each test
-    classreport << setprecision(4);
-    classreport << newl << setw(16) << left << "Test Averages:"
-    << setw(7) << average(t1) << setw(7)  << average(t2)
-    << setw(7) << average(t3) << setw(7)  << average(t4)
-    << setw(7) << average(final);
-    
-    // Print the highest grade of each test
-    classreport << newl << setw(16) << left << "Highest Grade:"
-    << setw(7) << max(t1) << setw(7)  << max(t2)
-    << setw(7) << max(t3) << setw(7)  << max(t4)
-    << setw(7) << max(final);
-    
-    // Print average of every test
-    double totalAvg = ((average(t1)/t1.size()) + (average(t2)/t2.size()) + (average(t3)/t3.size()) + (average(t4)/t4.size()) + (average(final)/final.size()))/(5*allStudents);
-    classreport << newl << "Total Average:  " << totalAvg << newl;
-    
-    // Print highest class grade
-    classreport << newl << setw(16) << left << "Highest Avg: " << setw(6) << left << max(studentAvg) << " ";
-    for (int i=0;i<allStudents;i++)
-    {
-        if(studentAvg[i] == max(studentAvg))
+        if((first==student[i].firstName) && (last==student[i].lastName))
         {
-            classreport << student[i].firstName << " " << student[i].lastName << newl;
+            cout << newl << setw(width) << left << first
+            << setw(width) << last << setw(width) << student[i].t1
+            << setw(width) << student[i].t2   << setw(width) << student[i].t3
+            << setw(width) << student[i].t4   << setw(width) << student[i].final
+            << setw(width) << avg[i]  << setw(width) << letterGrade(avg[i]) << newl;
         }
     }
+}
+int main()
+{
+    // Declare variables
+    char yesno;
+    
+    // Open the output file
+    ofstream classreport("ClassGradeReport.txt", std::ios_base::app | std::ios_base::out);
+    
+    if((classreport.is_open()) && (myfile.is_open()) && (myfile2.is_open()))
+    {
+        // Title
+        cout << "Class Grade Report\n\n";
+        
+        // Create an array where each index represents a student
+        // and store info from both .txt files
+        struct info student[allStudents];
+        storeInfo(inputFile, inputFile2, student);
+        
+        cout << "[1/6] Storing info from " << inputFile << " and " << inputFile2 << "..." << newl;
+        
+        // Create vector for each test
+        // and store the grades
+        vector<double> t1(allStudents);
+        vector<double> t2(allStudents);
+        vector<double> t3(allStudents);
+        vector<double> t4(allStudents);
+        vector<double> final(allStudents);
+        vector<double> studentAvg(allStudents);
+        
+        for(int i=0;i<allStudents;i++)
+        {
+            t1[i] = student[i].t1;
+            t2[i] = student[i].t2;
+            t3[i] = student[i].t3;
+            t4[i] = student[i].t4;
+            final[i] = student[i].final;
+        }
+        
+        // Print the class report
+        printData(student, studentAvg);
+        classreport << newl;
+        
+        // Print the average for each test
+        classreport << setprecision(4);
+        classreport << newl << setw(width*2) << left << "Test Averages:"
+        << setw(width) << average(t1) << setw(width)  << average(t2)
+        << setw(width) << average(t3) << setw(width)  << average(t4)
+        << setw(width) << average(final);
+        
+        cout << "[2/6] Calculating average..." << newl;
+        
+        // Print the highest grade of each test
+        classreport << newl << setw(width*2) << left << "Highest Grade:"
+        << setw(width) << max(t1) << setw(width)  << max(t2)
+        << setw(width) << max(t3) << setw(width)  << max(t4)
+        << setw(width) << max(final);
+        
+        cout << "[3/6] Calculating highest grade for each test..." << newl;
+        
+        // Print average of every test
+        double totalAvg = ((average(t1)/t1.size()) + (average(t2)/t2.size()) + (average(t3)/t3.size())
+                        +  (average(t4)/t4.size()) + (average(final)/final.size()))/(5*allStudents);
+        classreport << newl << setw(width*2) << "Total Average:" << totalAvg << newl;
+        
+        cout << "[4/6] Calculating average of every test..." << newl;
+        
+        // Print highest class grade
+        classreport << newl << setw(width*2) << left << "Highest Avg:"
+                    << setw(width) << left << max(studentAvg);
+        for (int i=0;i<allStudents;i++)
+        {
+            if(studentAvg[i] == max(studentAvg))
+            {
+                classreport << student[i].firstName << " " << student[i].lastName << newl;
+            }
+        }
+        
+        cout << "[5/6] Calculating highest class grade..." << newl;
+        
+        cout << "[6/6] Printing report to " << outputFile << "..." << newl;
+        cout << newl << "Done!\n";
+        
+        for(int i=0;i<1;)
+        {
+            cout << newl << "+ Would you like to view a student's info? (y/n): ";
+            cin >> yesno;
+            
+            if(yesno=='y')
+            {
+                findStudent(student, studentAvg);
+            }
+            if(yesno=='n')
+            {
+                cout << newl;
+                i++;
+            }
+        }
+    }
+    
+    else cout << "\nError: file missing\n";
     
     classreport.close();
     return 0;
